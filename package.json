@@ -4,6 +4,7 @@
   "description": "bspst's bot",
   "main": "bot.js",
   "scripts": {
+    "start": "node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +21,7 @@
   },
   "homepage": "https://github.com/bspst/shiibot#readme",
   "dependencies": {
-    "telegraf": "^3.17.2"
+    "github": "^13.0.1",
+    "node-telegram-bot-api": "^0.30.0"
   }
 }
