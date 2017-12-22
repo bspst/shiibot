@@ -22,6 +22,4 @@ bot.onText(/\/issue ([a-zA-Z0-9 ]+)-([a-zA-Z0-9 ]+)/, (msg, match) => {
 	bot.sendMessage(chatId, 'Successfully add ' + match[1])
 })
 
-bot.hears('hi', (ctx) =>('Hello, ctx.message.new_chat_member
-
 console.log('Running! use [ctrl] + [c] to stop services.')
