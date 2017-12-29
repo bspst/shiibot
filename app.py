@@ -19,6 +19,15 @@ def handle(msg):
         if msg['text'][0] == '/':
             cmd = msg['text'].split()[0][1:]
 
+            # Check if command is tagged
+            if '@' in cmd:
+                tagged_cmd = cmd.split('@')
+                cmd = tagged_cmd[0]
+                tag = tagged_cmd[1]
+                if tag != 'shiina_mashibot':
+                    # Do nothing if not for bot
+                    return
+
             if cmd == "start":
                 bot.sendMessage(chat_id, "I'm alive!")
 
