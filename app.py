@@ -2,17 +2,24 @@ import telepot
 import time
 import urllib3
 import os
+import firebase_admin
+import json
 
 bot = telepot.Bot(os.environ['BOT_TOKEN'])
 bot.setWebhook("")
 
+cred = firebase_admin.credentials.Certificate(json.loads(os.environ['FIREBASE_KEY']))
+firebase_admin.initialize_app(cred)
+
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
-    print(content_type, chat_type, chat_id)
+    sender = msg['from']
+    sender_id, sender_name = sender['id'], sender['first_name']
+    print(content_type, chat_type, chat_id, sender_name)
 
     if chat_id != int(os.environ['GROUP_ID']):
         bot.sendMessage(chat_id, "Sorry, this is a private bot.")
-        bot.sendMessage(chat_id, "ChatID: {}".format(chat_id))
+        bot.sendMessage(chat_id, "https://github.com/bspst/shiibot")
         return
 
     if content_type == 'text':
@@ -33,6 +40,10 @@ def handle(msg):
 
             if cmd == "ping":
                 bot.sendMessage(chat_id, "Pong!")
+
+            if cmd == "fapped":
+                # TODO: Fap counter for https://github.com/bspst/todo/issues/21
+                pass
 
 bot.message_loop(handle)
 

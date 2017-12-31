@@ -4,6 +4,7 @@ verify_ssl = true
 
 [packages]
 telepot = "*"
+firebase-admin = "*"
 
 [requires]
 python_version = "3.6"
