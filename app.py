@@ -6,6 +6,7 @@ import urllib3
 import os
 import firebase_admin
 from firebase_admin import credentials, db
+from github import Github
 import json
 
 bot = telepot.Bot(os.environ['BOT_TOKEN'])
@@ -16,8 +17,10 @@ app = firebase_admin.initialize_app(cred, {
     'databaseURL': os.environ['FIREBASE_DB_URL']
 })
 
+gh = Github(os.environ['GITHUB_TOKEN'])
+
 def handle(msg):
-    global app
+    global app, gh
 
     content_type, chat_type, chat_id = telepot.glance(msg)
     sender = msg['from']
@@ -34,7 +37,9 @@ def handle(msg):
     try:
         if content_type == 'text':
             if msg['text'][0] == '/':
-                cmd = msg['text'].split()[0][1:]
+                parts = msg['text'].strip().split()
+                cmd = parts[0][1:]
+                body = msg['text'][len(parts[0]):]
 
                 # Check if command is tagged
                 if '@' in cmd:
@@ -50,6 +55,25 @@ def handle(msg):
 
                 if cmd == "ping":
                     reply = "Pong!"
+
+                if cmd == "todo":
+                    # Make issue in bspst/todo
+                    repo = gh.get_repo("bspst/todo")
+
+                    if len(body.strip()) == 0:
+                        reply = "You can't do nothing"
+                    else:
+                        if "\n" in body:
+                            issue_title = body.split("\n")[0]
+                            issue_body = body[len(issue_title)+1:]
+                        else:
+                            issue_title = body
+                            issue_body = "Opened by {}".format(sender_name)
+
+                        # File issue
+                        issue = repo.create_issue("[{}] {}".format(sender['username'], issue_title, body=issue_body))
+
+                        reply = "Issue created! [#{}]({})".format(issue.number, issue.url)
 
                 if cmd == "fapped":
                     # Fap counter for https://github.com/bspst/todo/issues/21
