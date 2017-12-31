@@ -6,6 +6,7 @@ verify_ssl = true
 telepot = "*"
 firebase-admin = "*"
 PyGithub = "*"
+tweepy = "*"
 
 [requires]
 python_version = "3.6"

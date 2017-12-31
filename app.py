@@ -7,6 +7,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, db
 from github import Github
+import tweepy
 import json
 
 bot = telepot.Bot(os.environ['BOT_TOKEN'])
@@ -19,8 +20,13 @@ app = firebase_admin.initialize_app(cred, {
 
 gh = Github(os.environ['GITHUB_TOKEN'])
 
+tw_auth = json.loads(os.environ['TWITTER_AUTH'])
+oah = tweepy.OAuthHandler(tw_auth['consumer_key'], tw_auth['consumer_secret'])
+oah.set_access_token(tw_auth['access_token'], tw_auth['access_token_secret'])
+twitter = tweepy.API(oah)
+
 def handle(msg):
-    global app, gh
+    global app, gh, twitter
 
     content_type, chat_type, chat_id = telepot.glance(msg)
     sender = msg['from']
@@ -71,6 +77,14 @@ def handle(msg):
 
                         issue_url = "https://github.com/bspst/todo/issues/{}".format(issue.number)
                         reply = "Issue created! [#{}]({})".format(issue.number, issue_url)
+
+                if cmd == "tweet":
+                    # Sends a tweet to @realbspst
+                    if len(body.strip()) == 0:
+                        reply = "You can't tweet nothing"
+                    else:
+                        status = twitter.update_status(status=body)
+                        reply = "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
                 if cmd == "fapped":
                     # Fap counter for https://github.com/bspst/todo/issues/21
