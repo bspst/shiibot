@@ -51,16 +51,15 @@ def handle(msg):
                     reply = "Pong!"
 
                 if cmd == "fapped":
-                    # TODO: Fap counter for https://github.com/bspst/todo/issues/21
+                    # Fap counter for https://github.com/bspst/todo/issues/21
                     ref = db.reference("/faps", app)
                     user_data = ref.child(str(sender_id))
-                    user_data.push(time.time())
-
+                    user_data.child(str(msg['message_id'])).set(time.time())
                     current = user_data.get()
-                    print(current)
 
-                    reply = "DB updated! Total: {} faps.".format(len(current))
+                    reply = "DB updated! Total: {} faps.".format(len(current)+1)
                     pass
+
     except Exception as e:
         reply = "```python\n{}```".format(traceback.format_exc())
 
