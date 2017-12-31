@@ -65,9 +65,12 @@ def handle(msg):
                     # Fap statistics
                     ref = db.reference("/faps", app)
                     user_data = ref.child(str(sender_id)).get()
-                    last_timestamp = list(user_data)[-1]
-                    last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                    reply = "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
+                    if user_data == None:
+                        reply = "Oh my sweet summer child..."
+                    else:
+                        last_timestamp = list(user_data)[-1]
+                        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+                        reply = "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
 
     except Exception as e:
         reply = "```python\n{}```".format(traceback.format_exc())
