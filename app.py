@@ -63,17 +63,14 @@ def handle(msg):
                     if len(body.strip()) == 0:
                         reply = "You can't do nothing"
                     else:
-                        if "\n" in body:
-                            issue_title = body.split("\n")[0]
-                            issue_body = body[len(issue_title)+1:]
-                        else:
-                            issue_title = body
-                            issue_body = "Opened by {}".format(sender_name)
+                        issue_title = body.split("\n")[0]
+                        issue_body = body[len(issue_title)+1:].strip()
 
                         # File issue
                         issue = repo.create_issue("[{}] {}".format(sender['username'], issue_title, body=issue_body))
 
-                        reply = "Issue created! [#{}]({})".format(issue.number, issue.url)
+                        issue_url = "https://github.com/bspst/todo/issues/{}".format(issue.number)
+                        reply = "Issue created! [#{}]({})".format(issue.number, issue_url)
 
                 if cmd == "fapped":
                     # Fap counter for https://github.com/bspst/todo/issues/21
