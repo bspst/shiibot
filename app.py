@@ -55,10 +55,10 @@ def handle(msg):
                     # Fap counter for https://github.com/bspst/todo/issues/21
                     ref = db.reference("/faps", app)
                     user_data = ref.child(str(sender_id))
-                    user_data.child(str(msg['message_id'])).set(time.time())
                     current = user_data.get()
+                    user_data.child(str(len(current))).set(time.time())
 
-                    reply = "DB updated! Total: {} faps.".format(len(current)+1)
+                    reply = "DB updated! Total: {} faps.".format(len(current))
                     pass
 
                 if cmd == "fap_status":
