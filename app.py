@@ -91,6 +91,8 @@ def handle(msg):
                     ref = db.reference("/faps", app)
                     user_data = ref.child(str(sender_id))
                     current = user_data.get()
+                    if current == None:
+                        current = []
                     user_data.child(str(len(current))).set(time.time())
 
                     reply = "DB updated! Total: {} faps.".format(len(current))
