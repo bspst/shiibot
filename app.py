@@ -78,20 +78,34 @@ def parse_message(msg, access):
         current = user_data.get()
         if current == None:
             current = []
-        user_data.child(str(len(current))).set(time.time())
+        user_data.child(str(len(current))).set(int(round(time.time())))
 
         return "DB updated! Total: {} faps.".format(len(current))
 
-    if cmd == "fap_status":
-        # Fap statistics
+    if cmd == "fap":
+        arg = body.strip()
+
         ref = db.reference("/faps", app)
         user_data = ref.child(str(sender_id)).get()
         if user_data == None:
-            return "Oh my sweet summer child..."
+            user_data = []
 
-        last_timestamp = list(user_data)[-1]
-        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-        return "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
+        if arg == "dump":
+            # Dump fap data
+            return "`{}`".format(json.dumps(user_data))
+
+        elif arg == "status":
+            # Fap statistics
+            if len(user_data) == 0:
+                return "Oh my sweet summer child..."
+
+            last_timestamp = list(user_data)[-1]
+            last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            fap_ago = datetime.fromtimestamp(time.time() - last_timestamp).strftime('%dd %Hh %Mm %Ss')
+            return "Total: {} faps, last: {} UTC ({} ago)".format(len(user_data), last_fap, fap_ago)
+
+        else:
+            return "usage: /fap dump|status"
 
     print("Access: {}".format(access))
 
