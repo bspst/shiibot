@@ -34,18 +34,26 @@ def handle(msg):
     print(content_type, chat_type, chat_id, sender_name)
     print('< ', msg['text'])
 
-    if chat_id != int(os.environ['GROUP_ID']) and chat_type == "group":
+    # Limit access
+    access = True
+
+    if chat_id != int(os.environ['GROUP_ID']) and chat_type == "supergroup":
         bot.sendMessage(chat_id, "Sorry, this is a private bot.")
         bot.sendMessage(chat_id, "https://github.com/bspst/shiibot")
         return
 
+    if chat_type != "supergroup":
+        access = False
+
     reply = None
     try:
         if content_type == 'text':
-            if msg['text'][0] == '/':
+            if msg['text'].strip()[0] == '/':
                 parts = msg['text'].strip().split()
                 cmd = parts[0][1:]
                 body = msg['text'][len(parts[0]):]
+
+                print("Cmd: '{}'".format(cmd))
 
                 # Check if command is tagged
                 if '@' in cmd:
@@ -56,11 +64,43 @@ def handle(msg):
                         # Do nothing if not for bot
                         return
 
+                print("=>", cmd)
+
                 if cmd == "start":
                     reply = "I'm alive!"
 
                 if cmd == "ping":
                     reply = "Pong!"
+
+                if cmd == "fapped":
+                    # Fap counter for https://github.com/bspst/todo/issues/21
+                    ref = db.reference("/faps", app)
+                    user_data = ref.child(str(sender_id))
+                    current = user_data.get()
+                    if current == None:
+                        current = []
+                    user_data.child(str(len(current))).set(time.time())
+
+                    reply = "DB updated! Total: {} faps.".format(len(current))
+                    pass
+
+                if cmd == "fap_status":
+                    # Fap statistics
+                    ref = db.reference("/faps", app)
+                    user_data = ref.child(str(sender_id)).get()
+                    if user_data == None:
+                        reply = "Oh my sweet summer child..."
+                    else:
+                        last_timestamp = list(user_data)[-1]
+                        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+                        reply = "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
+
+                print("Access: {}".format(access))
+
+                # The commands below require a higher access level
+                if not access and reply != None:
+                    bot.sendMessage(chat_id, "Sorry, you can't do that here.", reply_to_message_id=msg['message_id'])
+                    return
 
                 if cmd == "todo":
                     # Make issue in bspst/todo
@@ -85,29 +125,6 @@ def handle(msg):
                     else:
                         status = twitter.update_status(status=body)
                         reply = "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
-
-                if cmd == "fapped":
-                    # Fap counter for https://github.com/bspst/todo/issues/21
-                    ref = db.reference("/faps", app)
-                    user_data = ref.child(str(sender_id))
-                    current = user_data.get()
-                    if current == None:
-                        current = []
-                    user_data.child(str(len(current))).set(time.time())
-
-                    reply = "DB updated! Total: {} faps.".format(len(current))
-                    pass
-
-                if cmd == "fap_status":
-                    # Fap statistics
-                    ref = db.reference("/faps", app)
-                    user_data = ref.child(str(sender_id)).get()
-                    if user_data == None:
-                        reply = "Oh my sweet summer child..."
-                    else:
-                        last_timestamp = list(user_data)[-1]
-                        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                        reply = "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
 
     except Exception as e:
         reply = "```python\n{}```".format(traceback.format_exc())
