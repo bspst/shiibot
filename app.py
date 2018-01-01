@@ -26,6 +26,22 @@ oah = tweepy.OAuthHandler(tw_auth['consumer_key'], tw_auth['consumer_secret'])
 oah.set_access_token(tw_auth['access_token'], tw_auth['access_token_secret'])
 twitter = tweepy.API(oah)
 
+def file_issue(repo_name, title, body):
+    global gh
+
+    repo = gh.get_repo("bspst/{}".format(repo_name))
+
+    if len(title.strip()) == 0:
+        return False
+
+    issue_title = title.strip()
+    issue_body = body.strip()
+
+    # File issue
+    issue = repo.create_issue(issue_title, body=issue_body)
+
+    return issue.number, "https://github.com/bspst/{}/issues/{}".format(repo_name, issue.number)
+
 def parse_message(msg, access):
     global app, gh, twitter, bot
 
@@ -90,14 +106,37 @@ def parse_message(msg, access):
         if len(body.strip()) == 0:
             return "You can't do nothing"
 
-        issue_title = body.split("\n")[0]
+        issue_title = body.split("\n")[0].strip()
         issue_body = body[len(issue_title)+1:].strip()
 
-        # File issue
-        issue = repo.create_issue("[{}] {}".format(sender['username'], issue_title, body=issue_body))
+        issue_num, issue_url = file_issue("todo", "[{}] {}".format(sender['username'], issue_title), issue_body)
+        if issue_url:
+            return "Issue filed! [#{}]({})".format(issue.number, issue_url)
 
-        issue_url = "https://github.com/bspst/todo/issues/{}".format(issue.number)
-        return "Issue created! [#{}]({})".format(issue.number, issue_url)
+        return "Unable to file issue"
+
+    if cmd == "issue":
+        # /issue file title\nbody
+        # /issue close repo number
+
+        args = body.split()
+        action = args[0]
+
+        if action == "file":
+            issue_repo = args[1]
+            issue_title = body.split("\n")[0][len(action)+len(issue_repo)+2:].strip()
+            issue_body = body[len(action)+len(issue_repo)+len(issue_title)+3:].strip()
+
+            issue_num, issue_url = file_issue(issue_repo, issue_title, "Opened by {}\n\n{}".format(sender['username'], issue_body))
+
+            if issue_url:
+                return "Issue [#{}]({}) filed on [bspst/{}]({})".format(issue_num, issue_url, issue_repo, "https://github.com/bspst/{}".format(issue_repo))
+
+            return "Unable to file issue"
+        elif action == "close":
+            repo_name = args[1]
+            issue_number = args[2]
+            # TODO
 
     if cmd == "tweet":
         # Sends a tweet to @realbspst
