@@ -2,6 +2,7 @@ import telepot
 import traceback
 import time
 from datetime import datetime
+from urllib.request import urlopen
 import urllib3
 import os
 import firebase_admin
@@ -26,7 +27,7 @@ oah.set_access_token(tw_auth['access_token'], tw_auth['access_token_secret'])
 twitter = tweepy.API(oah)
 
 def parse_message(msg, access):
-    global app, gh, twitter
+    global app, gh, twitter, bot
 
     parts = msg['text'].strip().split()
     cmd = parts[0][1:]
@@ -98,7 +99,21 @@ def parse_message(msg, access):
     if cmd == "tweet":
         # Sends a tweet to @realbspst
         if len(body.strip()) == 0:
-            return "You can't tweet nothing"
+            if not 'reply_to_message' in msg:
+                return "You can't tweet nothing"
+
+            msg2tweet = msg['reply_to_message']
+            print("Reply msg:", list(msg2tweet.keys()))
+            if 'text' in msg2tweet:
+                body = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['text'])
+            elif 'photo' in msg2tweet:
+                photo_id = msg2tweet['photo'][0]['file_id']
+                photo_path = bot.get_file(photo_id)['file_path']
+                photo_file = urlopen("https://api.telegram.org/file/bot{}/{}".format(os.environ['BOT_TOKEN'], photo_path))
+                caption = msg2tweet['caption']
+
+                status = twitter.update_with_media(photo_path, status=caption, file=photo_file)
+                return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
         status = twitter.update_status(status=body)
         return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
@@ -109,6 +124,7 @@ def handle(msg):
     sender_id, sender_name = sender['id'], sender['first_name']
     print(content_type, chat_type, chat_id, sender_name)
     print('< ', msg['text'])
+    print(list(msg.keys()))
 
     # Limit access
     access = True
