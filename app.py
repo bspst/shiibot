@@ -110,12 +110,13 @@ def parse_message(msg, access):
             if 'text' in msg2tweet:
                 body = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['text'])
             elif 'photo' in msg2tweet:
-                photo_id = msg2tweet['photo'][0]['file_id']
-                photo_path = bot.get_file(photo_id)['file_path']
-                photo_file = urlopen("https://api.telegram.org/file/bot{}/{}".format(os.environ['BOT_TOKEN'], photo_path))
-                caption = msg2tweet['caption']
+                photo_id = msg2tweet['photo'][-1]['file_id']
+                photo_path = bot.getFile(photo_id)['file_path'].split("/")[-1]
+                bot.download_file(photo_id, photo_path)
+                # photo_file = open("https://api.telegram.org/file/bot{}/{}".format(os.environ['BOT_TOKEN'], photo_path))
+                caption = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['caption']) if 'caption' in msg2tweet else msg2tweet['from']['username']
 
-                status = twitter.update_with_media(photo_path, status=caption, file=photo_file)
+                status = twitter.update_with_media(photo_path, status=caption)
                 return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
         status = twitter.update_status(status=body)
