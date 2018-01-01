@@ -29,6 +29,9 @@ twitter = tweepy.API(oah)
 def parse_message(msg, access):
     global app, gh, twitter, bot
 
+    sender = msg['from']
+    sender_id, sender_name = sender['id'], sender['first_name']
+
     parts = msg['text'].strip().split()
     cmd = parts[0][1:]
     body = msg['text'][len(parts[0]):]
