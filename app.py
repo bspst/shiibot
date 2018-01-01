@@ -25,9 +25,85 @@ oah = tweepy.OAuthHandler(tw_auth['consumer_key'], tw_auth['consumer_secret'])
 oah.set_access_token(tw_auth['access_token'], tw_auth['access_token_secret'])
 twitter = tweepy.API(oah)
 
-def handle(msg):
+def parse_message(msg, access):
     global app, gh, twitter
 
+    parts = msg['text'].strip().split()
+    cmd = parts[0][1:]
+    body = msg['text'][len(parts[0]):]
+
+    print("Cmd: '{}'".format(cmd))
+
+    # Check if command is tagged
+    if '@' in cmd:
+        tagged_cmd = cmd.split('@')
+        cmd = tagged_cmd[0]
+        tag = tagged_cmd[1]
+        if tag != 'shiina_mashibot':
+            # Do nothing if not for bot
+            return
+
+    print("=>", cmd)
+
+    if cmd == "start":
+        return "I'm alive!"
+
+    if cmd == "ping":
+        return "Pong!"
+
+    if cmd == "fapped":
+        # Fap counter for https://github.com/bspst/todo/issues/21
+        ref = db.reference("/faps", app)
+        user_data = ref.child(str(sender_id))
+        current = user_data.get()
+        if current == None:
+            current = []
+        user_data.child(str(len(current))).set(time.time())
+
+        return "DB updated! Total: {} faps.".format(len(current))
+
+    if cmd == "fap_status":
+        # Fap statistics
+        ref = db.reference("/faps", app)
+        user_data = ref.child(str(sender_id)).get()
+        if user_data == None:
+            return "Oh my sweet summer child..."
+
+        last_timestamp = list(user_data)[-1]
+        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        return "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
+
+    print("Access: {}".format(access))
+
+    # The commands below require a higher access level
+    if not access:
+        return "Sorry, you can't do that here."
+
+    if cmd == "todo":
+        # Make issue in bspst/todo
+        repo = gh.get_repo("bspst/todo")
+
+        if len(body.strip()) == 0:
+            return "You can't do nothing"
+
+        issue_title = body.split("\n")[0]
+        issue_body = body[len(issue_title)+1:].strip()
+
+        # File issue
+        issue = repo.create_issue("[{}] {}".format(sender['username'], issue_title, body=issue_body))
+
+        issue_url = "https://github.com/bspst/todo/issues/{}".format(issue.number)
+        return "Issue created! [#{}]({})".format(issue.number, issue_url)
+
+    if cmd == "tweet":
+        # Sends a tweet to @realbspst
+        if len(body.strip()) == 0:
+            return "You can't tweet nothing"
+
+        status = twitter.update_status(status=body)
+        return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
+
+def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     sender = msg['from']
     sender_id, sender_name = sender['id'], sender['first_name']
@@ -49,82 +125,7 @@ def handle(msg):
     try:
         if content_type == 'text':
             if msg['text'].strip()[0] == '/':
-                parts = msg['text'].strip().split()
-                cmd = parts[0][1:]
-                body = msg['text'][len(parts[0]):]
-
-                print("Cmd: '{}'".format(cmd))
-
-                # Check if command is tagged
-                if '@' in cmd:
-                    tagged_cmd = cmd.split('@')
-                    cmd = tagged_cmd[0]
-                    tag = tagged_cmd[1]
-                    if tag != 'shiina_mashibot':
-                        # Do nothing if not for bot
-                        return
-
-                print("=>", cmd)
-
-                if cmd == "start":
-                    reply = "I'm alive!"
-
-                if cmd == "ping":
-                    reply = "Pong!"
-
-                if cmd == "fapped":
-                    # Fap counter for https://github.com/bspst/todo/issues/21
-                    ref = db.reference("/faps", app)
-                    user_data = ref.child(str(sender_id))
-                    current = user_data.get()
-                    if current == None:
-                        current = []
-                    user_data.child(str(len(current))).set(time.time())
-
-                    reply = "DB updated! Total: {} faps.".format(len(current))
-                    pass
-
-                if cmd == "fap_status":
-                    # Fap statistics
-                    ref = db.reference("/faps", app)
-                    user_data = ref.child(str(sender_id)).get()
-                    if user_data == None:
-                        reply = "Oh my sweet summer child..."
-                    else:
-                        last_timestamp = list(user_data)[-1]
-                        last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-                        reply = "Total: {} faps, last: {} UTC".format(len(user_data), last_fap)
-
-                print("Access: {}".format(access))
-
-                # The commands below require a higher access level
-                if not access and reply != None:
-                    bot.sendMessage(chat_id, "Sorry, you can't do that here.", reply_to_message_id=msg['message_id'])
-                    return
-
-                if cmd == "todo":
-                    # Make issue in bspst/todo
-                    repo = gh.get_repo("bspst/todo")
-
-                    if len(body.strip()) == 0:
-                        reply = "You can't do nothing"
-                    else:
-                        issue_title = body.split("\n")[0]
-                        issue_body = body[len(issue_title)+1:].strip()
-
-                        # File issue
-                        issue = repo.create_issue("[{}] {}".format(sender['username'], issue_title, body=issue_body))
-
-                        issue_url = "https://github.com/bspst/todo/issues/{}".format(issue.number)
-                        reply = "Issue created! [#{}]({})".format(issue.number, issue_url)
-
-                if cmd == "tweet":
-                    # Sends a tweet to @realbspst
-                    if len(body.strip()) == 0:
-                        reply = "You can't tweet nothing"
-                    else:
-                        status = twitter.update_status(status=body)
-                        reply = "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
+                reply = parse_message(msg, access)
 
     except Exception as e:
         reply = "```python\n{}```".format(traceback.format_exc())
