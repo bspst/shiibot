@@ -148,6 +148,7 @@ def parse_message(msg, access):
             print("Reply msg:", list(msg2tweet.keys()))
             if 'text' in msg2tweet:
                 body = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['text'])
+                status = twitter.update_status(status=body)
             elif 'photo' in msg2tweet:
                 photo_id = msg2tweet['photo'][-1]['file_id']
                 photo_path = bot.getFile(photo_id)['file_path'].split("/")[-1]
@@ -156,9 +157,9 @@ def parse_message(msg, access):
                 caption = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['caption']) if 'caption' in msg2tweet else msg2tweet['from']['username']
 
                 status = twitter.update_with_media(photo_path, status=caption)
-                return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
+            else:
+                status = twitter.update_status(status="{}: {}".format(sender['username'], body))
 
-        status = twitter.update_status(status="{}: {}".format(sender['username'], body))
         return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
     if cmd == "untweet":
