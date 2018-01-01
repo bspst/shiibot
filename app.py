@@ -161,6 +161,25 @@ def parse_message(msg, access):
         status = twitter.update_status(status=body)
         return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
+    if cmd == "untweet":
+        # Deletes a tweet
+        if len(body.strip()) == 0:
+            if not 'reply_to_message' in msg:
+                # Delete last tweet
+                id2delete = twitter.user_timeline(count=1)[0].id
+            else:
+                # TODO
+                return
+        else:
+            if '/' in body:
+                id2delete = int(body.strip().split('/')[-1])
+            else:
+                id2delete = int(body.strip())
+
+        # Delete tweet
+        twitter.destroy_status(id2delete)
+        return "Untweeted message"
+
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     sender = msg['from']
