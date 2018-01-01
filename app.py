@@ -158,7 +158,7 @@ def parse_message(msg, access):
                 status = twitter.update_with_media(photo_path, status=caption)
                 return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
-        status = twitter.update_status(status=body)
+        status = twitter.update_status(status="{}: {}".format(sender['username'], body))
         return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
     if cmd == "untweet":
