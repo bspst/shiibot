@@ -80,7 +80,7 @@ def parse_message(msg, access):
             current = []
         user_data.child(str(len(current))).set(int(round(time.time())))
 
-        return "DB updated! Total: {} faps.".format(len(current))
+        return "DB updated! Total: {} faps.".format(len(current)+1)
 
     if cmd == "fap":
         arg = body.strip()
