@@ -171,8 +171,8 @@ def parse_message(msg, access):
                 caption = "{}: {}".format(msg2tweet['from']['username'], msg2tweet['caption']) if 'caption' in msg2tweet else msg2tweet['from']['username']
 
                 status = twitter.update_with_media(photo_path, status=caption)
-            else:
-                status = twitter.update_status(status="{}: {}".format(sender['username'], body))
+        else:
+            status = twitter.update_status(status="{}: {}".format(sender['username'], body))
 
         return "[Tweet posted!](https://twitter.com/realbspst/status/{})".format(status.id)
 
