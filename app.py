@@ -170,7 +170,7 @@ def parse_message(msg, access):
             reusername = body.group(1)
             twid = body.group(2)
             retweet = twitter.retweet(twid)
-        return "[Retweeted "+ reusername + "'s post!](https://twitter.com/realbspst/status/{})".format(status.id)
+        return "[Retweeted "+ reusername + "'s post!](https://twitter.com/realbspst/status/{})".format(retweet.id)
     
     if cmd == "tweet":
         # Sends a tweet to @realbspst
