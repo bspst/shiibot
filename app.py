@@ -10,6 +10,7 @@ from firebase_admin import credentials, db
 from github import Github
 import tweepy
 import json
+import re
 
 bot = telepot.Bot(os.environ['BOT_TOKEN'])
 bot.setWebhook("")
@@ -151,7 +152,26 @@ def parse_message(msg, access):
             repo_name = args[1]
             issue_number = args[2]
             # TODO
-
+    if cmd == "retweet":
+        # Retweet a tweet by its ID to @realbspst
+        if len(body.strip()) == 0:
+            if not 'reply_to_message' in msg:
+                return "You can't retweet nothing"
+            
+            msg2tweet = msg['reply_to_message']
+            print("Reply msg:", list(msg2tweet.keys()))
+            if 'text' in msg2tweet:
+                body = re.search(r'^(?:https:\/\/)twitter\.com\/([^?\/#]+)\/status\/([0-9]+).*$', msg2tweet)
+                reusername = body.group(1)
+                twid = body.group(2)
+                retweet = twitter.retweet(twid)
+        else:
+            message = re.search(r'^(?:https:\/\/)twitter\.com\/([^?\/#]+)\/status\/([0-9]+).*$', body)
+            reusername = body.group(1)
+            twid = body.group(2)
+            retweet = twitter.retweet(twid)
+        return "[Retweeted "+ reusername + "'s post!](https://twitter.com/realbspst/status/{})".format(status.id)
+    
     if cmd == "tweet":
         # Sends a tweet to @realbspst
         if len(body.strip()) == 0:
