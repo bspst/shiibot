@@ -167,8 +167,8 @@ def parse_message(msg, access):
                 retweet = twitter.retweet(twid)
         else:
             message = re.search(r'^(?:https:\/\/)twitter\.com\/([^?\/#]+)\/status\/([0-9]+).*$', body)
-            reusername = body.group(1)
-            twid = body.group(2)
+            reusername = message.group(1)
+            twid = message.group(2)
             retweet = twitter.retweet(twid)
         return "[Retweeted "+ reusername + "'s post!](https://twitter.com/realbspst/status/{})".format(retweet.id)
     
