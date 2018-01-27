@@ -126,7 +126,7 @@ def parse_message(msg, access):
 
         issue_num, issue_url = file_issue("todo", "[{}] {}".format(sender['username'], issue_title), issue_body)
         if issue_url:
-            return "Issue filed! [#{}]({})".format(issue.number, issue_url)
+            return "Issue filed! [#{}]({})".format(issue_num, issue_url)
 
         return "Unable to file issue"
 
