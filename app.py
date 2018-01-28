@@ -101,9 +101,10 @@ def parse_message(msg, access):
                 return "Oh my sweet summer child..."
 
             last_timestamp = list(user_data)[-1]
-            last_fap = datetime.fromtimestamp(last_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-            fap_ago = datetime.fromtimestamp(time.time() - last_timestamp).strftime('%dd %Hh %Mm %Ss')
-            return "Total: {} faps, last: {} UTC ({} ago)".format(len(user_data), last_fap, fap_ago)
+            offset = 7 * 3600 # UTC+7 offset
+            last_fap = datetime.fromtimestamp(last_timestamp + offset).strftime('%Y-%m-%d %H:%M:%S')
+            fap_ago_str = format_time(time.time() - last_timestamp)
+            return "Total: {} faps, last: {} UTC+7 ({} ago)".format(len(user_data), last_fap, fap_ago_str)
 
         else:
             return "usage: /fap dump|status"
@@ -152,7 +153,7 @@ def parse_message(msg, access):
             repo_name = args[1]
             issue_number = args[2]
             # TODO
-            
+
     if cmd == "retweet":
         # Retweet a tweet by its ID to @realbspst
         if len(body.strip()) == 0:
@@ -212,6 +213,17 @@ def parse_message(msg, access):
         # Delete tweet
         twitter.destroy_status(id2delete)
         return "Untweeted message"
+
+def format_time(seconds):
+    """
+    Convert seconds to readable time format
+    """
+    secs = int(seconds % 60)
+    mins = int(seconds // 60 % 60)
+    hours = int(seconds // 3600 % 24)
+    days = int(seconds // 86400)
+
+    return "{}d {}h {}m {}s".format(days, hours, mins, secs)
 
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
