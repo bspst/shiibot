@@ -71,6 +71,12 @@ def parse_message(msg, access):
 
     if cmd == "ping":
         return "Pong!"
+    
+    if cmd == "me":
+        if len(body.strip()) == 0:
+            return "You can't do nothing"
+        else:
+            return sender_name + body
 
     if cmd == "fapped":
         # Fap counter for https://github.com/bspst/todo/issues/21
