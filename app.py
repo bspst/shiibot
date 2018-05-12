@@ -73,7 +73,13 @@ def parse_message(msg, access):
         return "Pong!"
     
     if cmd == "hey":
-        return "Hey" + sender_name
+        return "Hey " + sender_name
+    
+    if cmd == "echo":
+        if len(body.strip()) == 0:
+            return "You can't do nothing"
+        else:
+            return body
     
     if cmd == "me":
         if len(body.strip()) == 0:
